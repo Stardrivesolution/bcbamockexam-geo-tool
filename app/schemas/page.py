@@ -8,6 +8,10 @@ from pydantic import BaseModel, Field, HttpUrl
 
 class AnalyzePageRequest(BaseModel):
     url: str = Field(..., description="Page URL to analyze")
+    project_id: Optional[int] = Field(
+        default=None,
+        description="Optional project id used to associate this analysis with a brand/site",
+    )
     target_keyword: Optional[str] = Field(
         default=None,
         description="Optional keyword/topic used later by GEO scoring agents",

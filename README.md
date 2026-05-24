@@ -54,6 +54,18 @@ curl -X POST http://127.0.0.1:8000/api/v1/analyze/page \
 curl http://127.0.0.1:8000/api/v1/analyze/runs
 ```
 
+创建公司默认项目配置：
+
+```bash
+PYTHONPATH=. python scripts/seed_bcbamockexam_project.py
+```
+
+查看项目：
+
+```bash
+curl http://127.0.0.1:8000/api/v1/projects
+```
+
 ## 当前数据表
 
 ```text

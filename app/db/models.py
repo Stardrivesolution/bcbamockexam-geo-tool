@@ -23,7 +23,10 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     brand_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     domain: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    target_language: Mapped[str] = mapped_column(String(20), default="en")
+    target_region: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
     competitors: Mapped[List] = mapped_column(JSON, default=list)
+    project_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     pages: Mapped[List["Page"]] = relationship(back_populates="project")

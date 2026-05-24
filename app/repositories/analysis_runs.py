@@ -25,6 +25,7 @@ class AnalysisRunRepository:
     ) -> AnalysisRun:
         page_data = response.page
         page = Page(
+            project_id=request.project_id,
             url=request.url,
             final_url=response.crawl.final_url,
             title=page_data.title,
@@ -37,6 +38,7 @@ class AnalysisRunRepository:
         self.db.flush()
 
         run = AnalysisRun(
+            project_id=request.project_id,
             page_id=page.id,
             target_keyword=request.target_keyword,
             language=request.language,
