@@ -62,6 +62,20 @@ class ExtractedPage(BaseModel):
 
 
 class AnalyzePageResponse(BaseModel):
+    analysis_run_id: Optional[int] = None
     crawl: CrawlMetadata
     page: ExtractedPage
+    warnings: list[str] = Field(default_factory=list)
+
+
+class AnalysisRunSummary(BaseModel):
+    id: int
+    url: str
+    final_url: str
+    title: Optional[str] = None
+    target_keyword: Optional[str] = None
+    language: str
+    status: str
+    analyzer_version: str
+    created_at: datetime
     warnings: list[str] = Field(default_factory=list)

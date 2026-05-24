@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     app_debug: bool = True
     http_timeout_seconds: int = Field(default=20, ge=3, le=120)
     max_html_bytes: int = Field(default=3_000_000, ge=100_000)
+    database_url: str = "sqlite:///./geo_internal_tool.db"
 
 
 @lru_cache
