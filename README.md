@@ -86,3 +86,8 @@ analysis_runs
 如果没有 run 记录，我们就无法比较优化前后差异。
 后续 GEO 评分、内容生成、AI Visibility 都会挂到 run 上。
 ```
+
+## 团队协作
+
+- 竞品筛选标准见 [docs/competitor_selection.md](docs/competitor_selection.md)
+- 环境变量共享规则见 [docs/team_environment.md](docs/team_environment.md)
