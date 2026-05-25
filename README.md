@@ -1,176 +1,263 @@
-# GEO Internal Tool
+# BCBA Mock Exam GEO Tool
 
-公司自用 GEO 分析、内容生成和 AI 可见度监测工具。
+Company-internal GEO analysis, content optimization, and AI visibility tooling
+for [bcbamockexam.com](https://bcbamockexam.com/).
 
-当前第一步只实现一件事：
-
-```text
-输入 URL -> 抓取页面 -> 提取结构化页面数据
-```
-
-现在还会把每次分析保存到 SQLite 数据库，方便后续做历史记录、GEO 评分、内容缺口分析和 AI Visibility 趋势追踪。
-
-## 目录结构
+The current product goal is to help us answer:
 
 ```text
-app/
-  api/routes/      FastAPI 接口
-  core/            配置、日志等基础设施
-  schemas/         Pydantic 输入输出结构
-  services/        抓取、解析、分析等业务逻辑
-  db/              SQLAlchemy 数据库连接和表结构
-  repositories/    数据库读写封装
-  utils/           URL 等通用工具
+1. Is a page technically and structurally ready for AI/search citation?
+2. Which user questions are not covered well enough?
+3. What content should we add or rewrite next?
+4. Later: Are AI answer engines mentioning or citing us more often?
 ```
 
-## 本地启动
+## Current Status
+
+Last updated: 2026-05-25
+
+| Area | Status | Notes |
+|---|---|---|
+| FastAPI backend | Done | API-first internal tool. |
+| Project configuration | Done | BCBA Mock Exam project, target language, region, and competitors. |
+| Page crawler/extractor | Done | Extracts title, meta, headings, text, links, images, JSON-LD, canonical, noindex, and structure signals. |
+| GEO Readiness scoring | Done v1 | Rule-based baseline scoring. |
+| Gap Analysis | Done v1 | Static and intent-question based coverage analysis. |
+| Markdown report | Done v1 | Combines page analysis, readiness, and gaps. |
+| Content Brief | Done v1 | Generates title/meta/FAQ/section/schema suggestions for human review. |
+| LLM provider | Done v1 | OpenAI-compatible client; DeepSeek configured through `.env`. |
+| Intent Agent | Done v1 | LLM or static question generation. |
+| LLM Gap Evaluator | Not started | Next recommended step. |
+| Competitor analysis | Not started | Planned after LLM evaluator. |
+| AI Visibility Monitor | Not started | Planned later. |
+| Frontend UI | Not started | FastAPI docs are enough for now. |
+
+## Quick Start
 
 ```bash
+git clone https://github.com/Stardrivesolution/bcbamockexam-geo-tool.git
+cd bcbamockexam-geo-tool
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 PYTHONPATH=. python scripts/init_db.py
+PYTHONPATH=. python scripts/seed_bcbamockexam_project.py
 uvicorn app.main:app --reload
 ```
 
-健康检查：
+Open:
 
-```bash
-curl http://127.0.0.1:8000/api/v1/health
+```text
+http://127.0.0.1:8000/docs
 ```
 
-页面分析：
+## Environment Variables
+
+Do not commit `.env`.
+
+Use `.env.example` as the template:
+
+```env
+APP_NAME="GEO Internal Tool"
+APP_ENV="local"
+APP_DEBUG=true
+HTTP_TIMEOUT_SECONDS=20
+MAX_HTML_BYTES=3000000
+DATABASE_URL="sqlite:///./geo_internal_tool.db"
+LLM_PROVIDER="deepseek"
+LLM_API_KEY=""
+LLM_BASE_URL="https://api.deepseek.com"
+LLM_MODEL="deepseek-chat"
+LLM_TIMEOUT_SECONDS=60
+```
+
+DeepSeek works through the OpenAI-compatible LLM client. Put the real key only
+in local `.env`.
+
+## Main Workflow
+
+### 1. Analyze A Page
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/analyze/page \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","target_keyword":"示例关键词"}'
+  -d '{
+    "project_id": 1,
+    "url": "https://bcbamockexam.com/",
+    "target_keyword": "BCBA mock exam",
+    "language": "en"
+  }'
 ```
 
-查看最近分析记录：
+Save the returned `analysis_run_id`.
+
+### 2. Score GEO Readiness
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/analyze/runs
+curl -X POST http://127.0.0.1:8000/api/v1/geo/readiness/{analysis_run_id}
 ```
 
-运行 GEO Readiness 规则评分：
+### 3. Generate Intent Questions
+
+Static mode:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/geo/readiness/1
+curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/{analysis_run_id}?use_llm=false"
 ```
 
-这里的 `1` 是 `analysis_run_id`。推荐流程是先分析页面，拿到
-`analysis_run_id`，再对这次分析运行 GEO 评分。
+LLM mode:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/{analysis_run_id}?use_llm=true"
+```
+
+### 4. Run Gap Analysis
+
+Default static questions:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/geo/gap-analysis/{analysis_run_id}
+```
+
+Use latest generated intent question set:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/geo/gap-analysis/{analysis_run_id}?use_latest_intent=true"
+```
+
+### 5. Generate Report
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/reports/geo/{analysis_run_id}
+```
+
+### 6. Generate Content Brief
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/content/brief/{analysis_run_id}
+```
+
+## What The Tool Currently Produces
+
+For the BCBA Mock Exam homepage, current rule-based outputs have shown:
 
 ```text
-POST /api/v1/analyze/page
-  -> 得到 analysis_run_id
-
-POST /api/v1/geo/readiness/{analysis_run_id}
-  -> 得到 GEO Readiness Score、维度分数、问题和建议
+GEO Readiness Score: 96.36
+Gap Coverage Score: 72.73
 ```
 
-运行 GEO Gap Analysis：
+Detected improvement themes include:
 
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/geo/gap-analysis/1
+```text
+- covered BCBA content areas / domains
+- mock exam scoring explanation
+- current BACB outline alignment
+- online/mobile access
+- missed question review
+- author/reviewer trust signals
 ```
 
-这个接口会基于 `analysis_run_id` 生成目标用户问题池，并判断页面对每个问题是
-`covered`、`partial` 还是 `missing`。
+## API Overview
 
-生成 GEO Markdown 报告：
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/health` | Health check |
+| `GET /api/v1/projects` | List projects |
+| `POST /api/v1/projects` | Create project |
+| `POST /api/v1/analyze/page` | Crawl and extract page data |
+| `GET /api/v1/analyze/runs` | List analysis runs |
+| `POST /api/v1/geo/readiness/{analysis_run_id}` | Rule-based GEO readiness score |
+| `POST /api/v1/geo/gap-analysis/{analysis_run_id}` | Question coverage analysis |
+| `POST /api/v1/reports/geo/{analysis_run_id}` | Markdown GEO report |
+| `POST /api/v1/content/brief/{analysis_run_id}` | Content optimization brief |
+| `POST /api/v1/llm/smoke-test` | Test LLM provider |
+| `POST /api/v1/intent/questions/{analysis_run_id}` | Static/LLM intent questions |
 
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/reports/geo/1
-```
-
-这个接口会把页面分析、Readiness 评分和 Gap Analysis 合并成一份 Markdown 报告。
-如果指定的 `analysis_run_id` 还没有 readiness 或 gap 结果，它会自动补算。
-
-生成内容 Brief：
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/content/brief/1
-```
-
-这个接口会根据 Readiness 和 Gap Analysis 输出标题建议、Meta 建议、FAQ 草稿、
-页面 section 建议和 Schema 建议。它是人工审核用的 brief，不是自动发布内容。
-
-测试 LLM Provider：
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/llm/smoke-test
-```
-
-默认 provider 是 DeepSeek。先在本地 `.env` 填好 `LLM_API_KEY`。
-
-生成 Intent 问题池：
-
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/1?use_llm=false"
-```
-
-配置好 `LLM_API_KEY` 后可以改成：
-
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/1?use_llm=true"
-```
-
-使用最新问题池运行 Gap Analysis：
-
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/geo/gap-analysis/1?use_latest_intent=true"
-```
-
-创建公司默认项目配置：
-
-```bash
-PYTHONPATH=. python scripts/seed_bcbamockexam_project.py
-```
-
-查看项目：
-
-```bash
-curl http://127.0.0.1:8000/api/v1/projects
-```
-
-## 当前数据表
+## Data Tables
 
 ```text
 projects
-  未来用于保存公司品牌、域名、竞品和项目配置。
-
 pages
-  保存被分析页面的 URL、标题、字数、H1 数量、noindex 等基础信息。
-
 analysis_runs
-  保存每次分析的原始结构化结果、关键词、语言、版本和 warning。
-
 geo_readiness_assessments
-  保存每次 GEO Readiness 评分结果、维度分数、问题和建议。
-
 geo_gap_analyses
-  保存每次内容缺口分析的问题覆盖结果和建议。
-
 geo_reports
-  保存生成后的 Markdown 报告。
-
 content_briefs
-  保存内容优化 brief，包括标题、Meta、FAQ、section 和 Schema 建议。
+intent_question_sets
 ```
 
-为什么要有 `analysis_runs`：
+Everything important is linked to `analysis_run_id` so we can compare before
+and after optimization.
+
+## Architecture
 
 ```text
-同一个页面会被反复优化和分析。
-如果没有 run 记录，我们就无法比较优化前后差异。
-后续 GEO 评分、内容生成、AI Visibility 都会挂到 run 上。
+app/
+  api/routes/       FastAPI route handlers
+  core/             runtime config
+  db/               SQLAlchemy models and session
+  repositories/     database read/write layer
+  schemas/          Pydantic request/response models
+  services/         crawler, extractor, scoring, gap, reports, content, LLM
+  utils/            shared helpers
 ```
 
-## 团队协作
+Design principle:
 
-- 竞品筛选标准见 [docs/competitor_selection.md](docs/competitor_selection.md)
-- 环境变量共享规则见 [docs/team_environment.md](docs/team_environment.md)
-- LLM provider 设置见 [docs/llm_provider.md](docs/llm_provider.md)
+```text
+Routes should orchestrate.
+Services should contain business logic.
+Repositories should own database access.
+Schemas should define stable data contracts.
+```
+
+## Useful Docs
+
+- [Competitor selection](docs/competitor_selection.md)
+- [Team environment and secrets](docs/team_environment.md)
+- [LLM provider](docs/llm_provider.md)
+- [GEO Readiness v1](docs/geo_readiness_v1.md)
+- [GEO Gap Analysis v1](docs/geo_gap_analysis_v1.md)
+- [Intent Agent v1](docs/intent_agent_v1.md)
+- [Report v1](docs/report_v1.md)
+- [Content Brief v1](docs/content_brief_v1.md)
+
+## Development Workflow
+
+Before starting:
+
+```bash
+git pull
+```
+
+After making changes:
+
+```bash
+PYTHONPATH=. pytest -q
+git status
+git add .
+git commit -m "short clear message"
+git push
+```
+
+## Next Recommended Step
+
+Build `LLM Gap Evaluator v2`.
+
+Goal:
+
+```text
+Instead of keyword overlap, use DeepSeek to judge whether the page truly
+answers each generated user question, with evidence and covered/partial/missing
+classification.
+```
+
+Suggested new modules:
+
+```text
+app/services/geo_gap/llm_evaluator.py
+app/services/geo_gap/prompts.py
+docs/llm_gap_evaluator_v2.md
+```
+
