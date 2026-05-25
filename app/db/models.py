@@ -75,6 +75,7 @@ class AnalysisRun(Base):
     geo_gap_analyses: Mapped[List["GeoGapAnalysis"]] = relationship(
         back_populates="analysis_run"
     )
+    geo_reports: Mapped[List["GeoReport"]] = relationship(back_populates="analysis_run")
 
 
 class GeoReadinessAssessment(Base):
@@ -112,3 +113,17 @@ class GeoGapAnalysis(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="geo_gap_analyses")
+
+
+class GeoReport(Base):
+    __tablename__ = "geo_reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    analysis_run_id: Mapped[int] = mapped_column(ForeignKey("analysis_runs.id"), nullable=False)
+    report_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    format: Mapped[str] = mapped_column(String(40), default="markdown")
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="geo_reports")

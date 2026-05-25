@@ -80,6 +80,15 @@ curl -X POST http://127.0.0.1:8000/api/v1/geo/gap-analysis/1
 这个接口会基于 `analysis_run_id` 生成目标用户问题池，并判断页面对每个问题是
 `covered`、`partial` 还是 `missing`。
 
+生成 GEO Markdown 报告：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/reports/geo/1
+```
+
+这个接口会把页面分析、Readiness 评分和 Gap Analysis 合并成一份 Markdown 报告。
+如果指定的 `analysis_run_id` 还没有 readiness 或 gap 结果，它会自动补算。
+
 创建公司默认项目配置：
 
 ```bash
@@ -109,6 +118,9 @@ geo_readiness_assessments
 
 geo_gap_analyses
   保存每次内容缺口分析的问题覆盖结果和建议。
+
+geo_reports
+  保存生成后的 Markdown 报告。
 ```
 
 为什么要有 `analysis_runs`：
