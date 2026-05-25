@@ -89,6 +89,15 @@ curl -X POST http://127.0.0.1:8000/api/v1/reports/geo/1
 这个接口会把页面分析、Readiness 评分和 Gap Analysis 合并成一份 Markdown 报告。
 如果指定的 `analysis_run_id` 还没有 readiness 或 gap 结果，它会自动补算。
 
+生成内容 Brief：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/content/brief/1
+```
+
+这个接口会根据 Readiness 和 Gap Analysis 输出标题建议、Meta 建议、FAQ 草稿、
+页面 section 建议和 Schema 建议。它是人工审核用的 brief，不是自动发布内容。
+
 创建公司默认项目配置：
 
 ```bash
@@ -121,6 +130,9 @@ geo_gap_analyses
 
 geo_reports
   保存生成后的 Markdown 报告。
+
+content_briefs
+  保存内容优化 brief，包括标题、Meta、FAQ、section 和 Schema 建议。
 ```
 
 为什么要有 `analysis_runs`：

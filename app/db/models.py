@@ -76,6 +76,7 @@ class AnalysisRun(Base):
         back_populates="analysis_run"
     )
     geo_reports: Mapped[List["GeoReport"]] = relationship(back_populates="analysis_run")
+    content_briefs: Mapped[List["ContentBrief"]] = relationship(back_populates="analysis_run")
 
 
 class GeoReadinessAssessment(Base):
@@ -127,3 +128,16 @@ class GeoReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="geo_reports")
+
+
+class ContentBrief(Base):
+    __tablename__ = "content_briefs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    analysis_run_id: Mapped[int] = mapped_column(ForeignKey("analysis_runs.id"), nullable=False)
+    brief_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    raw_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="content_briefs")
