@@ -106,6 +106,24 @@ curl -X POST http://127.0.0.1:8000/api/v1/llm/smoke-test
 
 默认 provider 是 DeepSeek。先在本地 `.env` 填好 `LLM_API_KEY`。
 
+生成 Intent 问题池：
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/1?use_llm=false"
+```
+
+配置好 `LLM_API_KEY` 后可以改成：
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/intent/questions/1?use_llm=true"
+```
+
+使用最新问题池运行 Gap Analysis：
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/geo/gap-analysis/1?use_latest_intent=true"
+```
+
 创建公司默认项目配置：
 
 ```bash

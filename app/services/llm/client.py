@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from openai import OpenAI
 
 from app.core.config import Settings
@@ -27,7 +29,7 @@ class OpenAICompatibleLlmClient:
     def generate_text(
         self,
         request: LlmRequest,
-        prompt_version: str | None = None,
+        prompt_version: Optional[str] = None,
     ) -> LlmResponse:
         response = self.client.chat.completions.create(
             model=self.settings.llm_model,
@@ -53,7 +55,7 @@ class OpenAICompatibleLlmClient:
     def generate_json(
         self,
         request: LlmRequest,
-        prompt_version: str | None = None,
+        prompt_version: Optional[str] = None,
     ) -> LlmResponse:
         response = self.client.chat.completions.create(
             model=self.settings.llm_model,

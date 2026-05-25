@@ -49,8 +49,9 @@ class GeoGapAnalyzer:
         analysis_run_id: int,
         analysis: AnalyzePageResponse,
         target_keyword: Optional[str],
+        questions: Optional[list[GapQuestion]] = None,
     ) -> GeoGapAnalysisResult:
-        questions = self.question_bank.generate(target_keyword)
+        questions = questions or self.question_bank.generate(target_keyword)
         text = analysis.page.main_text
         items = [self._score_question(question, text) for question in questions]
 

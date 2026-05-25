@@ -5,6 +5,8 @@ from app.db.session import get_db
 from app.repositories.analysis_runs import AnalysisRunRepository
 from app.repositories.geo_gap import GeoGapRepository
 from app.repositories.geo_readiness import GeoReadinessRepository
+from app.repositories.intent import IntentQuestionSetRepository
+from app.schemas.geo_gap import GapQuestion
 from app.schemas.geo_gap import GeoGapAnalysisResult
 from app.schemas.geo_readiness import GeoReadinessResult
 from app.schemas.page import AnalyzePageResponse
@@ -40,6 +42,7 @@ async def score_geo_readiness(
 @router.post("/gap-analysis/{analysis_run_id}", response_model=GeoGapAnalysisResult)
 async def analyze_geo_gaps(
     analysis_run_id: int,
+    use_latest_intent: bool = False,
     db: Session = Depends(get_db),
 ) -> GeoGapAnalysisResult:
     run = AnalysisRunRepository(db).get(analysis_run_id)
@@ -49,10 +52,22 @@ async def analyze_geo_gaps(
         raise HTTPException(status_code=409, detail="Analysis run is not completed")
 
     analysis = AnalyzePageResponse.model_validate(run.raw_result)
+    questions = None
+    if use_latest_intent:
+        latest_intent = IntentQuestionSetRepository(db).get_latest_for_run(analysis_run_id)
+        if latest_intent:
+            raw_questions = latest_intent.raw_result.get("questions", [])
+            questions = [
+                GapQuestion.model_validate(item)
+                for item in raw_questions
+                if isinstance(item, dict)
+            ]
+
     result = GeoGapAnalyzer().analyze(
         analysis_run_id=analysis_run_id,
         analysis=analysis,
         target_keyword=run.target_keyword,
+        questions=questions,
     )
 
     saved = GeoGapRepository(db).save(result)

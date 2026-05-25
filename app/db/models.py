@@ -31,6 +31,9 @@ class Project(Base):
 
     pages: Mapped[List["Page"]] = relationship(back_populates="project")
     analysis_runs: Mapped[List["AnalysisRun"]] = relationship(back_populates="project")
+    intent_question_sets: Mapped[List["IntentQuestionSetModel"]] = relationship(
+        back_populates="project"
+    )
 
 
 class Page(Base):
@@ -77,6 +80,9 @@ class AnalysisRun(Base):
     )
     geo_reports: Mapped[List["GeoReport"]] = relationship(back_populates="analysis_run")
     content_briefs: Mapped[List["ContentBrief"]] = relationship(back_populates="analysis_run")
+    intent_question_sets: Mapped[List["IntentQuestionSetModel"]] = relationship(
+        back_populates="analysis_run"
+    )
 
 
 class GeoReadinessAssessment(Base):
@@ -141,3 +147,25 @@ class ContentBrief(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="content_briefs")
+
+
+class IntentQuestionSetModel(Base):
+    __tablename__ = "intent_question_sets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("projects.id"), nullable=True)
+    analysis_run_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("analysis_runs.id"),
+        nullable=True,
+    )
+    target_keyword: Mapped[str] = mapped_column(String(300), nullable=False)
+    generator_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    source: Mapped[str] = mapped_column(String(40), default="llm")
+    questions: Mapped[List] = mapped_column(JSON, default=list)
+    raw_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    project: Mapped[Optional["Project"]] = relationship(back_populates="intent_question_sets")
+    analysis_run: Mapped[Optional["AnalysisRun"]] = relationship(
+        back_populates="intent_question_sets"
+    )
