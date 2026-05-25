@@ -72,6 +72,9 @@ class AnalysisRun(Base):
     geo_readiness_assessments: Mapped[List["GeoReadinessAssessment"]] = relationship(
         back_populates="analysis_run"
     )
+    geo_gap_analyses: Mapped[List["GeoGapAnalysis"]] = relationship(
+        back_populates="analysis_run"
+    )
 
 
 class GeoReadinessAssessment(Base):
@@ -90,3 +93,22 @@ class GeoReadinessAssessment(Base):
     analysis_run: Mapped["AnalysisRun"] = relationship(
         back_populates="geo_readiness_assessments"
     )
+
+
+class GeoGapAnalysis(Base):
+    __tablename__ = "geo_gap_analyses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    analysis_run_id: Mapped[int] = mapped_column(ForeignKey("analysis_runs.id"), nullable=False)
+    analyzer_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    overall_coverage_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    covered_count: Mapped[int] = mapped_column(Integer, default=0)
+    partial_count: Mapped[int] = mapped_column(Integer, default=0)
+    missing_count: Mapped[int] = mapped_column(Integer, default=0)
+    items: Mapped[List] = mapped_column(JSON, default=list)
+    missing_questions: Mapped[List] = mapped_column(JSON, default=list)
+    recommendations: Mapped[List] = mapped_column(JSON, default=list)
+    raw_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    analysis_run: Mapped["AnalysisRun"] = relationship(back_populates="geo_gap_analyses")

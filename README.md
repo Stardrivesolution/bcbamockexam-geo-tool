@@ -71,6 +71,15 @@ POST /api/v1/geo/readiness/{analysis_run_id}
   -> 得到 GEO Readiness Score、维度分数、问题和建议
 ```
 
+运行 GEO Gap Analysis：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/geo/gap-analysis/1
+```
+
+这个接口会基于 `analysis_run_id` 生成目标用户问题池，并判断页面对每个问题是
+`covered`、`partial` 还是 `missing`。
+
 创建公司默认项目配置：
 
 ```bash
@@ -97,6 +106,9 @@ analysis_runs
 
 geo_readiness_assessments
   保存每次 GEO Readiness 评分结果、维度分数、问题和建议。
+
+geo_gap_analyses
+  保存每次内容缺口分析的问题覆盖结果和建议。
 ```
 
 为什么要有 `analysis_runs`：
