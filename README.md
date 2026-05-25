@@ -98,6 +98,14 @@ curl -X POST http://127.0.0.1:8000/api/v1/content/brief/1
 这个接口会根据 Readiness 和 Gap Analysis 输出标题建议、Meta 建议、FAQ 草稿、
 页面 section 建议和 Schema 建议。它是人工审核用的 brief，不是自动发布内容。
 
+测试 LLM Provider：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/llm/smoke-test
+```
+
+默认 provider 是 DeepSeek。先在本地 `.env` 填好 `LLM_API_KEY`。
+
 创建公司默认项目配置：
 
 ```bash
@@ -147,3 +155,4 @@ content_briefs
 
 - 竞品筛选标准见 [docs/competitor_selection.md](docs/competitor_selection.md)
 - 环境变量共享规则见 [docs/team_environment.md](docs/team_environment.md)
+- LLM provider 设置见 [docs/llm_provider.md](docs/llm_provider.md)

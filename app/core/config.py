@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     http_timeout_seconds: int = Field(default=20, ge=3, le=120)
     max_html_bytes: int = Field(default=3_000_000, ge=100_000)
     database_url: str = "sqlite:///./geo_internal_tool.db"
+    llm_provider: str = "deepseek"
+    llm_api_key: str = ""
+    llm_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-chat"
+    llm_timeout_seconds: int = Field(default=60, ge=5, le=180)
 
 
 @lru_cache

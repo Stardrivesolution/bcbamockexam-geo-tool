@@ -16,7 +16,7 @@ own local `.env` file.
 
 Environment variables usually contain private or machine-specific values:
 
-- OpenAI API keys
+- LLM API keys
 - database URLs
 - crawl limits
 - model names
@@ -70,8 +70,11 @@ APP_NAME="GEO Internal Tool"
 APP_ENV="local"
 APP_DEBUG=true
 DATABASE_URL="sqlite:///./geo_internal_tool.db"
-OPENAI_API_KEY="real-key-goes-here"
-DEFAULT_LLM_MODEL="gpt-4.1-mini"
+LLM_PROVIDER="deepseek"
+LLM_API_KEY="real-key-goes-here"
+LLM_BASE_URL="https://api.deepseek.com"
+LLM_MODEL="deepseek-chat"
+LLM_TIMEOUT_SECONDS=60
 ```
 
 ## Development vs Production
@@ -97,4 +100,3 @@ When developer A adds a new environment variable:
 3. Commit the code and `.env.example`.
 4. Share the real secret through the password manager.
 5. Developer B pulls the code and updates their local `.env`.
-
