@@ -7,7 +7,14 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from app.schemas.page import ExtractedPage, Heading, ImageItem, LinkItem, TechnicalSignals
+from app.schemas.page import (
+    ContentStructure,
+    ExtractedPage,
+    Heading,
+    ImageItem,
+    LinkItem,
+    TechnicalSignals,
+)
 
 
 WHITESPACE_RE = re.compile(r"\s+")
@@ -32,6 +39,7 @@ class HtmlExtractor:
         images = self._extract_images(soup, final_url)
         json_ld = self._extract_json_ld(html)
         main_text = self._extract_main_text(soup)
+        structure = self._extract_structure(soup, headings, main_text)
 
         return ExtractedPage(
             url=final_url,
@@ -49,6 +57,7 @@ class HtmlExtractor:
                 meta_robots=meta_robots,
                 has_noindex="noindex" in (meta_robots or "").lower(),
             ),
+            structure=structure,
         )
 
     def _meta_content(self, soup: BeautifulSoup, name: str) -> Optional[str]:
@@ -114,6 +123,26 @@ class HtmlExtractor:
             elif isinstance(parsed, list):
                 items.extend(item for item in parsed if isinstance(item, dict))
         return items
+
+    def _extract_structure(
+        self,
+        soup: BeautifulSoup,
+        headings: list[Heading],
+        main_text: str,
+    ) -> ContentStructure:
+        faq_heading_count = sum(
+            1
+            for heading in headings
+            if "faq" in heading.text.lower()
+            or "frequently asked" in heading.text.lower()
+            or heading.text.strip().endswith("?")
+        )
+        return ContentStructure(
+            list_count=len(soup.find_all(["ul", "ol"])),
+            table_count=len(soup.find_all("table")),
+            faq_heading_count=faq_heading_count,
+            question_mark_count=main_text.count("?"),
+        )
 
     def _extract_main_text(self, soup: BeautifulSoup) -> str:
         candidate = soup.find("main") or soup.find("article") or soup.body or soup

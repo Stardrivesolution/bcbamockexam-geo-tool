@@ -69,3 +69,24 @@ class AnalysisRun(Base):
 
     project: Mapped[Optional["Project"]] = relationship(back_populates="analysis_runs")
     page: Mapped["Page"] = relationship(back_populates="analysis_runs")
+    geo_readiness_assessments: Mapped[List["GeoReadinessAssessment"]] = relationship(
+        back_populates="analysis_run"
+    )
+
+
+class GeoReadinessAssessment(Base):
+    __tablename__ = "geo_readiness_assessments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    analysis_run_id: Mapped[int] = mapped_column(ForeignKey("analysis_runs.id"), nullable=False)
+    scorer_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    overall_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    dimension_scores: Mapped[dict] = mapped_column(JSON, default=dict)
+    issues: Mapped[List] = mapped_column(JSON, default=list)
+    recommendations: Mapped[List] = mapped_column(JSON, default=list)
+    raw_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    analysis_run: Mapped["AnalysisRun"] = relationship(
+        back_populates="geo_readiness_assessments"
+    )

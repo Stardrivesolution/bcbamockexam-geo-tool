@@ -54,6 +54,23 @@ curl -X POST http://127.0.0.1:8000/api/v1/analyze/page \
 curl http://127.0.0.1:8000/api/v1/analyze/runs
 ```
 
+运行 GEO Readiness 规则评分：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/geo/readiness/1
+```
+
+这里的 `1` 是 `analysis_run_id`。推荐流程是先分析页面，拿到
+`analysis_run_id`，再对这次分析运行 GEO 评分。
+
+```text
+POST /api/v1/analyze/page
+  -> 得到 analysis_run_id
+
+POST /api/v1/geo/readiness/{analysis_run_id}
+  -> 得到 GEO Readiness Score、维度分数、问题和建议
+```
+
 创建公司默认项目配置：
 
 ```bash
@@ -77,6 +94,9 @@ pages
 
 analysis_runs
   保存每次分析的原始结构化结果、关键词、语言、版本和 warning。
+
+geo_readiness_assessments
+  保存每次 GEO Readiness 评分结果、维度分数、问题和建议。
 ```
 
 为什么要有 `analysis_runs`：

@@ -51,6 +51,13 @@ class TechnicalSignals(BaseModel):
     robots_txt_status_code: Optional[int] = None
 
 
+class ContentStructure(BaseModel):
+    list_count: int = 0
+    table_count: int = 0
+    faq_heading_count: int = 0
+    question_mark_count: int = 0
+
+
 class ExtractedPage(BaseModel):
     url: str
     title: Optional[str] = None
@@ -63,6 +70,7 @@ class ExtractedPage(BaseModel):
     images: list[ImageItem]
     json_ld: list[dict[str, Any]]
     technical: TechnicalSignals
+    structure: ContentStructure = Field(default_factory=ContentStructure)
 
 
 class AnalyzePageResponse(BaseModel):
